@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="weather">
+	<!-- mybatis는 파라미터 바인딩 방식이기 때문에, 파라미터값이 문자열이라고 '#{}' 식으로 홑따옴표를 사용해줄 필요 없다. -->
+	<select id="getMenus" resultType="my.vo.MenuVO" parameterType="java.util.Map">
+		<if test="season_b != null">
+			SELECT *
+			FROM (  SELECT *
+			        FROM (SELECT * FROM tbl_menu
+			              WHERE season LIKE '%'||#{season_a}||'%'
+			              ORDER BY DBMS_RANDOM.RANDOM)
+			        WHERE rownum &lt;= #{menu_a_count} 
+			        UNION
+			        SELECT *
+			        FROM (SELECT * FROM tbl_menu
+			              WHERE season LIKE '%'||#{season_b}||'%'
+			              ORDER BY DBMS_RANDOM.RANDOM)
+			        WHERE rownum &lt;= #{menu_b_count}
+			)
+			ORDER BY DBMS_RANDOM.RANDOM
+		</if>
+		<if test="season_b == null">
+			SELECT *
+	        FROM (SELECT * FROM tbl_menu
+	              WHERE season LIKE '%'||#{season_a}||'%'
+	              ORDER BY DBMS_RANDOM.RANDOM)
+	        WHERE rownum &lt;= #{menu_a_count}
+		</if>
+	</select>
+	
+	
+	<select id="test" resultType="String">
+		SELECT season FROM tbl_season WHERE s_idx = 1
+	</select>
+	
+	
+	<select id="getHit" resultType="my.vo.UserMenuHitVO">
+		SELECT u_idx, m_idx, COUNT(m_idx) AS hit
+	    FROM tbl_history
+	    GROUP BY m_idx, u_idx
+	    ORDER BY u_idx
+	</select>
+	
+	<!-- 추천아이템 하나 가져오기 -->
+	<select id="getItem" resultType="my.vo.MenuVO" parameterType="String">
+		SELECT * FROM TBL_MENU WHERE M_IDX = #{item}
+	</select>
+	
+	<!-- 유저idx 값을 kname을 이용해 찾기 -->
+	<select id="findUserIdx" parameterType="String" resultType="int">
+		SELECT u_idx
+		FROM tbl_user
+		WHERE user_name = #{kname} 
+	</select><!-- #{kname} -->
+	
+	<!-- 머하웃 추천메뉴리스트  정보들 얻어오기 -->
+	<select id="getMahoutMenuOne" parameterType="int" resultType="my.vo.MenuVO">
+		SELECT *
+		FROM tbl_menu
+		WHERE m_idx = #{inputInt}
+	</select>
+	
+
+</mapper>
+ 

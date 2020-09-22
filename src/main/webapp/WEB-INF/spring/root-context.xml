@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xsi:schemaLocation="http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.1.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+
+	<!-- Root Context: defines shared resources visible to all other web components -->
+
+ 	<!--이 아래로 bean으로 설정된 것들이 annotation에 대해 관련된 기능들이 정상작동 할 수 있도록 해주는 작업이 context:annotation-config 이다. -->
+    <context:annotation-config/>
+       
+    <context:property-placeholder location="classpath:mybatis/props/jdbc.properties"/>
+    
+    <!-- Apache의 dbcp객체를 생성 -->
+    <bean id="ds" destroy-method="close" class="org.apache.commons.dbcp.BasicDataSource">
+    	<property name="driverClassName" value="${jdbc.driver}"/>
+    	<property name="url" value="${jdbc.url}"/>
+    	<property name="username" value="${jdbc.user}"/>
+    	<property name="password" value="${jdbc.pwd}"/>
+    	<property name="maxActive" value="${jdbc.maxActive}"/>
+    	<property name="maxIdle" value="${jdbc.maxIdle}"/>
+    	<property name="minIdle" value="${jdbc.minIdle}"/>
+    </bean>
+    
+    <bean id="factory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    	<!-- 앞서 생성된 ds객체를 현재 객체에 넣어줘야 한다. -->
+    	<property name="dataSource" ref="ds"/>
+    	<!-- 맴퍼들(인식)의 위치 지정 -->
+    	<property name="mapperLocations" value="classpath:mybatis/mapper/*.xml"/>
+    </bean>
+    
+    <bean id="ss" class="org.mybatis.spring.SqlSessionTemplate" autowire="byName">
+    	<constructor-arg ref="factory"/> <!-- 생성자 인젝션 방식으로 넣기 -->
+    </bean>
+    
+    <!-- 사용자가 필요에 따라 정의한 DAO들을 생성한다. -->
+    <bean id="userDao" class="my.dao.UserDAO"/>
+    <bean id="menuDao" class="my.dao.MenuDAO"/>
+    <bean id="hDao" class="my.dao.HistoryDAO"/>
+    <bean id="csvDao" class="my.dao.ExportCSVDAO"/>
+    <bean id="menuUtil" class="my.util.MenuUtil"/>
+    
+
+
+	<context:component-scan	base-package="my.task"></context:component-scan>
+	<task:annotation-driven/>
+</beans>
